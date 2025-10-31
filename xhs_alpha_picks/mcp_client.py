@@ -71,7 +71,7 @@ class XiaohongshuMCPClient:
             "search_path": self.search_path,
             "search_url": getattr(self, "search_url", self._endpoint(self.search_path)),
             "timeout": self.timeout,
-            "has_api_key": bool(self.api_key),
+            "has_mcp_api_key": bool(self.api_key),
         }
 
     def ping(self) -> None:

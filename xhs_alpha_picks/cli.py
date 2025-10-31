@@ -100,7 +100,7 @@ def main(argv: Optional[list[str]] = None, *, stream=None) -> int:
             "search_path": getattr(client, "search_path", "<unknown>"),
             "search_url": getattr(client, "search_url", "<unknown>"),
             "timeout": getattr(client, "timeout", "<unknown>"),
-            "has_api_key": bool(getattr(client, "api_key", None)),
+            "has_mcp_api_key": bool(getattr(client, "api_key", None)),
         })()
         stream.write("MCP connection configuration:\n")
         stream.write(f"  Base URL: {info.get('base_url', '<unknown>')}\n")
@@ -108,8 +108,13 @@ def main(argv: Optional[list[str]] = None, *, stream=None) -> int:
         stream.write(f"  Search URL: {info.get('search_url', '<unknown>')}\n")
         stream.write(f"  Timeout: {info.get('timeout', '<unknown>')}s\n")
         stream.write(
-            "  API key: {}\n".format(
-                "configured" if info.get("has_api_key") else "not set"
+            "  MCP API key: {}\n".format(
+                "configured" if info.get("has_mcp_api_key") else "not set"
+            )
+        )
+        stream.write(
+            "  DeepSeek API key: {}\n".format(
+                "configured" if settings.deepseek_api_key else "not set"
             )
         )
 

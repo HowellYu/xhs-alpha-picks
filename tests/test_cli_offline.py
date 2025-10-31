@@ -150,7 +150,7 @@ def test_cli_debug_prints_connection(monkeypatch):
                 "search_path": "/mcp/tools/search",
                 "search_url": "http://localhost:18060/mcp/tools/search",
                 "timeout": 30.0,
-                "has_api_key": False,
+                "has_mcp_api_key": False,
             }
 
         def ping(self):
