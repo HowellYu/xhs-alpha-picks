@@ -62,6 +62,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Verify the MCP server is reachable and exit.",
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print MCP connection details before running.",
+    )
     return parser
 
 
@@ -89,6 +94,25 @@ def main(argv: Optional[list[str]] = None, *, stream=None) -> int:
     )
 
     client = XiaohongshuMCPClient(settings=settings)
+    if args.debug:
+        info = getattr(client, "connection_info", lambda: {
+            "base_url": getattr(client, "base_url", "<unknown>"),
+            "search_path": getattr(client, "search_path", "<unknown>"),
+            "search_url": getattr(client, "search_url", "<unknown>"),
+            "timeout": getattr(client, "timeout", "<unknown>"),
+            "has_api_key": bool(getattr(client, "api_key", None)),
+        })()
+        stream.write("MCP connection configuration:\n")
+        stream.write(f"  Base URL: {info.get('base_url', '<unknown>')}\n")
+        stream.write(f"  Search path: {info.get('search_path', '<unknown>')}\n")
+        stream.write(f"  Search URL: {info.get('search_url', '<unknown>')}\n")
+        stream.write(f"  Timeout: {info.get('timeout', '<unknown>')}s\n")
+        stream.write(
+            "  API key: {}\n".format(
+                "configured" if info.get("has_api_key") else "not set"
+            )
+        )
+
     if args.check_connection:
         try:
             client.ping()
@@ -106,12 +130,20 @@ def main(argv: Optional[list[str]] = None, *, stream=None) -> int:
             "Run with --check-connection for more details.\n"
         )
         stream.write(f"Details: {exc}\n")
+        if not args.debug:
+            stream.write(
+                "Re-run with --debug to print the derived MCP connection settings.\n"
+            )
         return 2
 
     try:
         result = client.search_notes(keyword, limit=max(args.count, 1))
     except MCPError as exc:
         stream.write(f"Error: {exc}\n")
+        if not args.debug:
+            stream.write(
+                "Re-run with --debug to print the derived MCP connection settings.\n"
+            )
         return 2
 
     notes = result["notes"]

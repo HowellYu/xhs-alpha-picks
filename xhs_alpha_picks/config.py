@@ -15,6 +15,7 @@ class Settings:
     deepseek_model: str
     xhs_mcp_base_url: str
     xhs_mcp_search_path: str
+    xhs_mcp_search_url: Optional[str]
     xhs_mcp_timeout: float
     xhs_mcp_api_key: Optional[str]
 
@@ -27,6 +28,7 @@ class Settings:
             deepseek_model=env.get("DEEPSEEK_MODEL", "deepseek-chat"),
             xhs_mcp_base_url=env.get("XHS_MCP_BASE_URL", "http://127.0.0.1:18060"),
             xhs_mcp_search_path=env.get("XHS_MCP_SEARCH_PATH", "/mcp/tools/search"),
+            xhs_mcp_search_url=env.get("XHS_MCP_SEARCH_URL"),
             xhs_mcp_timeout=float(env.get("XHS_MCP_TIMEOUT", "30.0")),
             xhs_mcp_api_key=env.get("XHS_MCP_API_KEY"),
         )

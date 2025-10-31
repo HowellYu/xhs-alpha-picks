@@ -68,6 +68,9 @@ def test_cli_offline_mode(tmp_path: Path, monkeypatch):
 def test_cli_check_connection_success(monkeypatch):
     class DummyClient:
         base_url = "http://example.com"
+        search_path = "/mcp/tools/search"
+        search_url = "http://example.com/mcp/tools/search"
+        timeout = 30
 
         def __init__(self, *args, **kwargs):
             pass
@@ -89,6 +92,9 @@ def test_cli_check_connection_success(monkeypatch):
 def test_cli_check_connection_failure(monkeypatch):
     class DummyClient:
         base_url = "http://example.com"
+        search_path = "/mcp/tools/search"
+        search_url = "http://example.com/mcp/tools/search"
+        timeout = 30
 
         def __init__(self, *args, **kwargs):
             pass
@@ -109,6 +115,11 @@ def test_cli_check_connection_failure(monkeypatch):
 
 def test_cli_ping_failure(monkeypatch):
     class DummyClient:
+        base_url = "http://example.com"
+        search_path = "/mcp/tools/search"
+        search_url = "http://example.com/mcp/tools/search"
+        timeout = 30
+
         def __init__(self, *args, **kwargs):
             pass
 
@@ -126,3 +137,38 @@ def test_cli_ping_failure(monkeypatch):
     text = buffer.getvalue()
     assert "unreachable" in text
     assert "connection refused" in text
+
+
+def test_cli_debug_prints_connection(monkeypatch):
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def connection_info(self):
+            return {
+                "base_url": "http://localhost:18060",
+                "search_path": "/mcp/tools/search",
+                "search_url": "http://localhost:18060/mcp/tools/search",
+                "timeout": 30.0,
+                "has_api_key": False,
+            }
+
+        def ping(self):
+            return None
+
+        def search_notes(self, keyword: str, limit: int, raw_payload=None):
+            return {"notes": [], "raw": {}}
+
+    monkeypatch.setattr("xhs_alpha_picks.cli.XiaohongshuMCPClient", DummyClient)
+
+    from io import StringIO
+
+    buffer = StringIO()
+    exit_code = main(["--debug"], stream=buffer)
+
+    assert exit_code == 0
+    text = buffer.getvalue()
+    assert "MCP connection configuration" in text
+    assert "Base URL: http://localhost:18060" in text
+    assert "Search URL: http://localhost:18060/mcp/tools/search" in text
+    assert "No notes found" in text
