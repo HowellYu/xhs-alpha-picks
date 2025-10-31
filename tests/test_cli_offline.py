@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict
 
 from xhs_alpha_picks.cli import main
+from xhs_alpha_picks.mcp_client import MCPError
 from xhs_alpha_picks.note_parser import extract_notes
 
 
@@ -59,3 +60,45 @@ def test_cli_offline_mode(tmp_path: Path, monkeypatch):
     text = buffer.getvalue()
     assert "Retrieved 1 notes" in text
     assert keyword in text
+
+
+def test_cli_check_connection_success(monkeypatch):
+    class DummyClient:
+        base_url = "http://example.com"
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def ping(self):
+            return None
+
+    monkeypatch.setattr("xhs_alpha_picks.cli.XiaohongshuMCPClient", DummyClient)
+
+    from io import StringIO
+
+    buffer = StringIO()
+    exit_code = main(["--check-connection"], stream=buffer)
+
+    assert exit_code == 0
+    assert "is reachable" in buffer.getvalue()
+
+
+def test_cli_check_connection_failure(monkeypatch):
+    class DummyClient:
+        base_url = "http://example.com"
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def ping(self):
+            raise MCPError("boom")
+
+    monkeypatch.setattr("xhs_alpha_picks.cli.XiaohongshuMCPClient", DummyClient)
+
+    from io import StringIO
+
+    buffer = StringIO()
+    exit_code = main(["--check-connection"], stream=buffer)
+
+    assert exit_code == 2
+    assert "boom" in buffer.getvalue()

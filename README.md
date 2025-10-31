@@ -85,6 +85,8 @@ Opal later (no deployment automation is included yet).
    - `--offline` skips DeepSeek and only prints the retrieved notes.
    - `--show-raw` prints the entire MCP payload for debugging.
    - `--save-json raw.json` stores the payload to disk for later use.
+   - `--check-connection` performs a quick reachability probe against the
+     MCP server and exits without issuing a search.
 
 ## Testing locally
 

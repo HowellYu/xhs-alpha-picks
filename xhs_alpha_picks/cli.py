@@ -57,6 +57,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Write the raw MCP payload to a file.",
     )
+    parser.add_argument(
+        "--check-connection",
+        action="store_true",
+        help="Verify the MCP server is reachable and exit.",
+    )
     return parser
 
 
@@ -84,6 +89,15 @@ def main(argv: Optional[list[str]] = None, *, stream=None) -> int:
     )
 
     client = XiaohongshuMCPClient(settings=settings)
+    if args.check_connection:
+        try:
+            client.ping()
+        except MCPError as exc:
+            stream.write(f"Connection check failed: {exc}\n")
+            return 2
+        stream.write(f"MCP server at {client.base_url} is reachable.\n")
+        return 0
+
     try:
         result = client.search_notes(keyword, limit=max(args.count, 1))
     except MCPError as exc:

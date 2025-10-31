@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import socket
 from typing import Any, Dict, Iterable, List, Optional
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
@@ -42,6 +43,26 @@ class XiaohongshuMCPClient:
 
     def _endpoint(self, path: str) -> str:
         return urljoin(self.base_url, path)
+
+    def ping(self) -> None:
+        """Best-effort connectivity probe for the MCP server host."""
+
+        from urllib.parse import urlsplit
+
+        parsed = urlsplit(self.base_url)
+        host = parsed.hostname
+        if not host:
+            raise MCPError(f"Unable to parse MCP base URL: {self.base_url!r}")
+        port = parsed.port
+        if not port:
+            port = 443 if parsed.scheme == "https" else 80
+        try:
+            with socket.create_connection((host, port), timeout=self.timeout):
+                return
+        except OSError as exc:
+            raise MCPError(
+                f"Unable to reach MCP server at {self.base_url} (host {host}:{port}): {exc}"
+            ) from exc
 
     def search_notes(
         self,
