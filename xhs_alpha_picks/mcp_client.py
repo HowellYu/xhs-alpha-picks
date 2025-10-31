@@ -103,13 +103,17 @@ class XiaohongshuMCPClient:
     ) -> Dict[str, Any]:
         """Invoke the MCP search tool and return parsed notes alongside raw payload."""
 
-        payload: Dict[str, Any] = {
+        arguments: Dict[str, Any] = {
             "keyword": keyword,
             "page": 1,
             "page_size": limit,
         }
         if raw_payload:
-            payload.update(raw_payload)
+            arguments.update(raw_payload)
+        payload: Dict[str, Any] = {
+            "version": "2.0",
+            "arguments": arguments,
+        }
         url = self._endpoint(getattr(self, "search_url", self.search_path))
         request = Request(
             url,

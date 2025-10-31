@@ -1,3 +1,5 @@
+import json
+
 from xhs_alpha_picks.config import Settings
 from xhs_alpha_picks.mcp_client import XiaohongshuMCPClient
 
@@ -51,5 +53,36 @@ def test_headers_include_required_accept_values():
     headers = client.build_headers()
     assert headers["Content-Type"] == "application/json"
     assert headers["Accept"] == "application/json, text/event-stream"
+
+
+def test_search_notes_wraps_arguments_and_version(monkeypatch):
+    captured = {}
+
+    class DummyResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return b"{}"
+
+    def fake_urlopen(request, timeout):
+        captured["data"] = request.data
+        captured["headers"] = request.headers
+        captured["timeout"] = timeout
+        return DummyResponse()
+
+    monkeypatch.setattr("xhs_alpha_picks.mcp_client.urlopen", fake_urlopen)
+
+    client = XiaohongshuMCPClient(settings=make_settings())
+    client.search_notes("alpha", limit=3, raw_payload={"extra": True})
+
+    payload = json.loads(captured["data"].decode("utf-8"))
+    assert payload["version"] == "2.0"
+    assert payload["arguments"]["keyword"] == "alpha"
+    assert payload["arguments"]["page_size"] == 3
+    assert payload["arguments"]["extra"] is True
 
 
