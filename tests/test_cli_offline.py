@@ -32,6 +32,9 @@ def test_cli_offline_mode(tmp_path: Path, monkeypatch):
         def __init__(self, *args, **kwargs):
             pass
 
+        def ping(self):
+            return None
+
         def search_notes(self, keyword: str, limit: int, raw_payload: Dict[str, object] | None = None):
             assert keyword == "alpha pick 2099-01-01"
             return {"notes": extract_notes(payload), "raw": payload}
@@ -102,3 +105,24 @@ def test_cli_check_connection_failure(monkeypatch):
 
     assert exit_code == 2
     assert "boom" in buffer.getvalue()
+
+
+def test_cli_ping_failure(monkeypatch):
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def ping(self):
+            raise MCPError("connection refused")
+
+    monkeypatch.setattr("xhs_alpha_picks.cli.XiaohongshuMCPClient", DummyClient)
+
+    from io import StringIO
+
+    buffer = StringIO()
+    exit_code = main(["--keyword", "alpha pick 2099-01-01"], stream=buffer)
+
+    assert exit_code == 2
+    text = buffer.getvalue()
+    assert "unreachable" in text
+    assert "connection refused" in text

@@ -99,6 +99,16 @@ def main(argv: Optional[list[str]] = None, *, stream=None) -> int:
         return 0
 
     try:
+        client.ping()
+    except MCPError as exc:
+        stream.write(
+            "Error: MCP server is unreachable. "
+            "Run with --check-connection for more details.\n"
+        )
+        stream.write(f"Details: {exc}\n")
+        return 2
+
+    try:
         result = client.search_notes(keyword, limit=max(args.count, 1))
     except MCPError as exc:
         stream.write(f"Error: {exc}\n")

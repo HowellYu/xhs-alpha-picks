@@ -86,7 +86,9 @@ Opal later (no deployment automation is included yet).
    - `--show-raw` prints the entire MCP payload for debugging.
    - `--save-json raw.json` stores the payload to disk for later use.
    - `--check-connection` performs a quick reachability probe against the
-     MCP server and exits without issuing a search.
+     MCP server and exits without issuing a search. The CLI now performs a
+     light-weight reachability check automatically before every search and
+     exits early with guidance if the server cannot be reached.
 
 ## Testing locally
 
