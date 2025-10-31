@@ -172,3 +172,27 @@ def test_cli_debug_prints_connection(monkeypatch):
     assert "Base URL: http://localhost:18060" in text
     assert "Search URL: http://localhost:18060/mcp/tools/search" in text
     assert "No notes found" in text
+
+
+def test_cli_accepts_mcp_api_key_override(monkeypatch):
+    captured: Dict[str, object] = {}
+
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            captured["api_key"] = kwargs.get("api_key")
+
+        def ping(self):
+            return None
+
+        def search_notes(self, keyword: str, limit: int, raw_payload=None):
+            return {"notes": [], "raw": {}}
+
+    monkeypatch.setattr("xhs_alpha_picks.cli.XiaohongshuMCPClient", DummyClient)
+
+    from io import StringIO
+
+    buffer = StringIO()
+    exit_code = main(["--mcp-api-key", "topsecret"], stream=buffer)
+
+    assert exit_code == 0
+    assert captured["api_key"] == "topsecret"

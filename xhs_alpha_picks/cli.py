@@ -67,6 +67,10 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Print MCP connection details before running.",
     )
+    parser.add_argument(
+        "--mcp-api-key",
+        help="Override the MCP API key (falls back to XHS_MCP_API_KEY).",
+    )
     return parser
 
 
@@ -93,7 +97,7 @@ def main(argv: Optional[list[str]] = None, *, stream=None) -> int:
         base_prompt=prompt_template or "Summarise how '{keyword}' is discussed in these notes.",
     )
 
-    client = XiaohongshuMCPClient(settings=settings)
+    client = XiaohongshuMCPClient(settings=settings, api_key=args.mcp_api_key)
     if args.debug:
         info = getattr(client, "connection_info", lambda: {
             "base_url": getattr(client, "base_url", "<unknown>"),

@@ -35,6 +35,8 @@ Opal later (no deployment automation is included yet).
    ```bash
    export DEEPSEEK_API_KEY=sk-your-deepseek-key
    export XHS_MCP_BASE_URL=http://127.0.0.1:18060
+   # optional: provide the MCP API key if your server requires one
+   # export XHS_MCP_API_KEY=your-mcp-api-key
    # optional: override the relative path (defaults to /mcp/tools/search)
    # export XHS_MCP_SEARCH_PATH=/mcp/tools/search
    # optional: provide a fully-qualified search URL if you reverse proxy
@@ -109,6 +111,8 @@ Opal later (no deployment automation is included yet).
    - `--debug` prints the derived MCP base URL, search path, timeout, and
      API key status so you can confirm the configuration matches the MCP
      server’s README instructions.
+   - `--mcp-api-key` lets you supply a key directly on the command line
+     (it overrides `XHS_MCP_API_KEY` for the current invocation).
 
 ## Testing locally
 
