@@ -46,3 +46,10 @@ def test_search_url_from_explicit_setting():
     assert info["base_url"].startswith("http://example.com")
 
 
+def test_headers_include_required_accept_values():
+    client = XiaohongshuMCPClient(settings=make_settings())
+    headers = client.build_headers()
+    assert headers["Content-Type"] == "application/json"
+    assert headers["Accept"] == "application/json, text/event-stream"
+
+

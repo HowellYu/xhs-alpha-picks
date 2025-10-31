@@ -52,7 +52,10 @@ class XiaohongshuMCPClient:
             self.search_url = urljoin(self.base_url.rstrip("/") + "/", path)
 
     def build_headers(self) -> Dict[str, str]:
-        headers = {"Content-Type": "application/json"}
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
         return headers
