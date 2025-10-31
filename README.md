@@ -43,6 +43,14 @@ Opal later (no deployment automation is included yet).
 
 3. **Start the Xiaohongshu MCP server**
 
+   MCP (Model Context Protocol) servers are small HTTP services that act
+   as capability adapters for language models. The open-source
+   Xiaohongshu MCP server wraps the site’s search endpoints and exposes
+   them in a predictable JSON shape so that any MCP-compatible client –
+   whether this CLI, an IDE, or Google Opal later on – can call it
+   safely. Running the server locally gives you a concrete endpoint to
+   query; without it, the CLI has nowhere to send the search request.
+
    Clone and run the open-source server locally, following the
    instructions from its repository. Ensure it listens on the
    `XHS_MCP_BASE_URL` you configured above.
