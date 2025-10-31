@@ -1,0 +1,5 @@
+# Optional dependencies for runtime features
+openai>=1.30.5
+
+# Development / testing
+pytest>=8.1.0
