@@ -34,12 +34,12 @@ Opal later (no deployment automation is included yet).
 
    ```bash
    export DEEPSEEK_API_KEY=sk-your-deepseek-key
-   export XHS_MCP_BASE_URL=http://127.0.0.1:9099
+   export XHS_MCP_BASE_URL=http://127.0.0.1:18060
    ```
 
    The default `XHS_MCP_BASE_URL` matches the open-source server’s
-   default. Override `XHS_MCP_SEARCH_PATH` if you expose the tool under a
-   different URL.
+   default HTTP port (`18060`). Override `XHS_MCP_SEARCH_PATH` if you
+   expose the tool under a different URL.
 
 3. **Start the Xiaohongshu MCP server**
 
@@ -54,6 +54,17 @@ Opal later (no deployment automation is included yet).
    Clone and run the open-source server locally, following the
    instructions from its repository. Ensure it listens on the
    `XHS_MCP_BASE_URL` you configured above.
+
+   The binary’s README calls out two important URLs once the process is
+   running locally:
+
+   - `http://localhost:18060/` loads the dashboard (or QR-code login
+     page when you start it with `-headless=false`).
+   - `http://localhost:18060/mcp/...` exposes the actual MCP HTTP API
+     that this client calls. By default the search tool lives at
+     `/mcp/tools/search`, which matches this project’s
+     `XHS_MCP_SEARCH_PATH` default. If you self-host the server behind a
+     reverse proxy, make sure those paths remain reachable.
 
 ### Why you still need that “middleman” server
 
