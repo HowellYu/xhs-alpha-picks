@@ -55,6 +55,22 @@ Opal later (no deployment automation is included yet).
    instructions from its repository. Ensure it listens on the
    `XHS_MCP_BASE_URL` you configured above.
 
+### Why you still need that “middleman” server
+
+- **MCP is a network protocol, not an in-process SDK.** Even though the
+  server simply wraps Xiaohongshu’s private endpoints, the CLI and any
+  future MCP clients expect to talk to a live HTTP service that speaks
+  the protocol. The server is therefore the MCP “tool” implementation.
+- **It centralises scraping credentials and throttling.** The adapter is
+  responsible for holding session cookies, solving anti-bot
+  requirements, and shaping responses. Offloading that work to the
+  server keeps the CLI (and any other clients) stateless and compliant
+  with MCP expectations.
+- **It is the piece Google Opal will call.** When you deploy later, Opal
+  connects to registered MCP endpoints; keeping the adapter as a
+  standalone service today guarantees that the same component is
+  reusable in that environment without code changes.
+
 4. **Run the CLI**
 
    ```bash
