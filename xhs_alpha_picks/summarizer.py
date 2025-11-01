@@ -65,9 +65,9 @@ class DeepSeekSummarizer:
         user_prompt = prompt or DEFAULT_USER_PROMPT
         sys_prompt = system_prompt or DEFAULT_SYSTEM_PROMPT
         notes_blob = "\n\n".join(iter_note_summaries(note_list))
-        completion = self.client.responses.create(
+        completion = self.client.chat.completions.create(
             model=self.model,
-            input=[
+            messages=[
                 {
                     "role": "system",
                     "content": sys_prompt,
@@ -79,13 +79,7 @@ class DeepSeekSummarizer:
             ],
             temperature=0.3,
         )
-        text_chunks: List[str] = []
-        for item in completion.output:
-            if item.type == "message":
-                for part in item.content:
-                    if part.type == "output_text":
-                        text_chunks.append(part.text)
-        summary_text = "\n".join(text_chunks).strip()
+        summary_text = (completion.choices[0].message.content or "").strip()
         return SummaryResult(
             prompt=user_prompt,
             response_text=summary_text,
