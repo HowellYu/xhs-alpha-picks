@@ -1,0 +1,28 @@
+﻿Alpha Picks Summary - 2025-10-31
+================================================================================
+Generated: 2025-11-02 02:07:03
+Number of Notes: 1
+--------------------------------------------------------------------------------
+
+Note 1:
+  Note ID: test123
+  Title: 测试Alpha Picks 2025-10-31
+  Author: Test Author
+  Selection Date: 2025-10-31
+  Publish Time: 2025-10-31 12:00:00
+  URL: https://test.com
+  Quality Score: 0.90
+  High Quality: True
+  Quality Notes: Good quality
+
+  Post Text:
+  ----------------------------------------------------------------------------
+  这是测试文本
+  Test post text with Alpha Picks information
+
+  OCR Text (from images):
+  ----------------------------------------------------------------------------
+  OCR text from images
+  图像中的OCR文本
+
+================================================================================
