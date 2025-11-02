@@ -232,7 +232,7 @@ async def save_daily_summary(
         content += "=" * 80 + "\n\n" + summary + "\n\n"
     
     # Write with UTF-8 BOM for proper encoding detection
-    with open(log_path, file_mode, encoding="utf-8", newline='\n') as f:
+    with open(log_path, file_mode, encoding="utf-8-sig", newline='\n') as f:
         f.write(content)
     
     return log_path
