@@ -1,130 +1,137 @@
-# Xiaohongshu Alpha Pick Search Prototype
+# Xiaohongshu Alpha Picks Search & Analysis
 
-This project provides a local workflow for querying the open-source
-[Xiaohongshu MCP server](https://github.com/xpzouying/xiaohongshu-mcp)
-and summarising the retrieved notes with DeepSeek. The default keyword is
-“alpha pick {today}”, but both the keyword and prompt are fully
-customisable from the CLI.
-
-The code is designed to run locally today and can be deployed to Google
-Opal later (no deployment automation is included yet).
+Automated pipeline for discovering and analyzing Seeking Alpha's Alpha Picks selections from Xiaohongshu posts. Combines the [open-source Xiaohongshu MCP server](https://github.com/xpzouying/xiaohongshu-mcp) with DeepSeek LLM to extract structured stock selection data.
 
 ## Features
 
--   Talks to the open-source Xiaohongshu MCP server over HTTP.
--   Extracts both post body text and OCR text from images.
--   Summarises results through DeepSeek (optional offline mode for testing).
--   Keyword, prompt, and prompt template can be customised.
--   Saves raw MCP payloads for inspection.
+-   🔍 Searches Xiaohongshu for Alpha Picks posts using MCP protocol
+-   📷 Extracts OCR text from images automatically
+-   ✅ Quality filtering: validates multiple picks, dates, Seeking Alpha references
+-   📅 Smart date filtering: scan for today's posts or find latest selections
+-   💾 Daily logging: saves structured data to date-stamped .txt files
+-   🤖 DeepSeek integration: optional LLM-powered summarization
 
-## Getting started
+## Quick Start
 
-1. **Install dependencies** (preferably inside a virtual environment). The
-   `openai` package is only required if you plan to run DeepSeek
-   summarisation locally:
+### 1. Install Dependencies
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+pip install -r requirements.txt
+```
 
-2. **Prepare configuration**
+### 2. Configure Environment
 
-    The application reads settings from environment variables or a `.env`
-    file. At minimum you should configure:
+**Required:**
 
-    ```bash
-    export DEEPSEEK_API_KEY=sk-your-deepseek-key
-    export XHS_MCP_BASE_URL=http://127.0.0.1:18060
-    # optional: provide the MCP API key if your server requires one
-    # export XHS_MCP_API_KEY=your-mcp-api-key
-    # optional: override the relative path (defaults to /mcp/tools/search)
-    # export XHS_MCP_SEARCH_PATH=/mcp/tools/search
-    # optional: provide a fully-qualified search URL if you reverse proxy
-    # export XHS_MCP_SEARCH_URL=http://127.0.0.1:18060/mcp/tools/search
-    ```
+```bash
+export DEEPSEEK_API_KEY=sk-your-deepseek-key
+```
 
-    The default `XHS_MCP_BASE_URL` matches the open-source server’s
-    default HTTP port (`18060`). Override `XHS_MCP_SEARCH_PATH` if you
-    expose the tool under a different relative URL, or set
-    `XHS_MCP_SEARCH_URL` to the exact endpoint if you front it with a
-    reverse proxy.
+**Optional (defaults shown):**
 
-3. **Start the Xiaohongshu MCP server**
+```bash
+export XHS_MCP_BASE_URL=http://127.0.0.1:18060  # MCP server URL
+export DEEPSEEK_BASE_URL=https://api.deepseek.com
+export DEEPSEEK_MODEL=deepseek-chat
+```
 
-    MCP (Model Context Protocol) servers are small HTTP services that act
-    as capability adapters for language models. The open-source
-    Xiaohongshu MCP server wraps the site’s search endpoints and exposes
-    them in a predictable JSON shape so that any MCP-compatible client –
-    whether this CLI, an IDE, or Google Opal later on – can call it
-    safely. Running the server locally gives you a concrete endpoint to
-    query; without it, the CLI has nowhere to send the search request.
+### 3. Start Xiaohongshu MCP Server
 
-    Clone and run the open-source server locally, following the
-    instructions from its repository. Ensure it listens on the
-    `XHS_MCP_BASE_URL` you configured above.
+Clone and run the open-source MCP server from [https://github.com/xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp). Ensure it's listening on port 18060 and you're logged in.
 
-    The binary’s README calls out two important URLs once the process is
-    running locally:
+**Why MCP?** The server handles Xiaohongshu authentication, rate limiting, and protocol translation. The CLI talks to it via HTTP (MCP protocol) rather than scraping directly.
 
-    - `http://localhost:18060/` loads the dashboard (or QR-code login
-      page when you start it with `-headless=false`).
-    - `http://localhost:18060/mcp/...` exposes the actual MCP HTTP API
-      that this client calls. By default the search tool lives at
-      `/mcp/tools/search`, which matches this project’s
-      `XHS_MCP_SEARCH_PATH` default. If you self-host the server behind a
-      reverse proxy, make sure those paths remain reachable.
+### 4. Run the CLI
 
-### Why you still need that “middleman” server
+**Scan for today's Alpha Picks:**
 
--   **MCP is a network protocol, not an in-process SDK.** Even though the
-    server simply wraps Xiaohongshu’s private endpoints, the CLI and any
-    future MCP clients expect to talk to a live HTTP service that speaks
-    the protocol. The server is therefore the MCP “tool” implementation.
--   **It centralises scraping credentials and throttling.** The adapter is
-    responsible for holding session cookies, solving anti-bot
-    requirements, and shaping responses. Offloading that work to the
-    server keeps the CLI (and any other clients) stateless and compliant
-    with MCP expectations.
--   **It is the piece Google Opal will call.** When you deploy later, Opal
-    connects to registered MCP endpoints; keeping the adapter as a
-    standalone service today guarantees that the same component is
-    reusable in that environment without code changes.
+```bash
+python cli.py --keyword "Alpha Picks" --today --max-results 1
+```
 
-4. **Run the CLI**
+**Find latest Alpha Picks selections:**
 
-    ```bash
-    python -m xhs_alpha_picks.cli --keyword "alpha pick $(date +%Y-%m-%d)" --count 5
-    ```
+```bash
+python cli.py --keyword "Alpha Picks" --max-results 2
+```
 
-    Useful flags:
+**Customize scan parameters:**
 
-    - `--prompt` or `--prompt-file` to tweak the DeepSeek prompt. Use
-      `{keyword}` as a placeholder that resolves to the actual search
-      keyword.
-    - `--offline` skips DeepSeek and only prints the retrieved notes.
-    - `--show-raw` prints the entire MCP payload for debugging.
-    - `--save-json raw.json` stores the payload to disk for later use.
-    - `--check-connection` performs a quick reachability probe against the
-      MCP server and exits without issuing a search. The CLI now performs a
-      light-weight reachability check automatically before every search and
-      exits early with guidance if the server cannot be reached.
-    - `--debug` prints the derived MCP base URL, search path, timeout, and
-      API key status so you can confirm the configuration matches the MCP
-      server’s README instructions.
-    - `--mcp-api-key` lets you supply a key directly on the command line
-      (it overrides `XHS_MCP_API_KEY` for the current invocation).
+```bash
+python cli.py --keyword "Alpha Picks" \
+  --days 7 \           # Look back 7 days
+  --max-results 3 \    # Keep top 3 high-quality results
+  --count 20           # Fetch 20 notes from MCP
+```
 
-## Testing locally
+**Key CLI Options:**
 
-The project ships with a small test suite that mocks the MCP server and
-runs the CLI in offline mode:
+| Flag              | Description                                     |
+| ----------------- | ----------------------------------------------- |
+| `--keyword TEXT`  | Search keyword (default: "alpha pick {today}")  |
+| `--today`         | Filter to today's posts only                    |
+| `--days N`        | Filter to last N days (default: 2)              |
+| `--max-results N` | Keep top N high-quality results (default: 1)    |
+| `--count N`       | Fetch N notes from MCP (default: 10)            |
+| `--note-type N`   | 0=all, 1=video, 2=image+text (default: 2)       |
+| `--sort TYPE`     | general, time_descending, popularity_descending |
+| `--log-dir DIR`   | Log directory (default: `alpha_picks_logs/`)    |
+| `--no-log`        | Skip saving to log file                         |
+| `--show-json`     | Print processed notes as JSON                   |
+| `--show-raw`      | Print raw MCP payload                           |
+| `--debug`         | Show connection details                         |
+
+**Note:** `--sort` is set to `time_descending` by default for most recent results.
+
+## Output Format
+
+Logs are saved to `alpha_picks_logs/YYYY-MM-DD_{today|latest}.txt`:
+
+```
+Alpha Picks Summary - 2025-10-31
+================================================================================
+Note 1:
+  Title: Seeking Alpha Picks 2025.10.31新增企业
+  Author: mir的自由之路
+  Selection Date: 2025-10-31
+
+  Post Text:
+  [Full post content...]
+
+  OCR Text (from images):
+  [Extracted text from images...]
+```
+
+## Quality Filtering
+
+Notes are scored for quality based on:
+
+-   ✅ Mentions Seeking Alpha/Alpha Picks service
+-   ✅ Contains 3+ stock selections (not just 1-2)
+-   ✅ Includes selection dates
+-   ✅ Has substantial text + OCR content
+
+Only high-quality notes (score ≥ 0.7) are kept by default.
+
+## Testing
+
+Run offline tests:
 
 ```bash
 pytest
 ```
 
-## Next steps
+## How It Works
 
--   Integrate deployment automation for Google Opal once the open-source
-    MCP server is hosted.
--   Extend the CLI to support incremental syncs or scheduling if required.
+1. **Search**: CLI calls the MCP server's `search_feeds` tool with your keyword
+2. **Extract**: Raw note data is parsed, extracting title, description, author, images
+3. **OCR**: Text is extracted from images using the MCP server's OCR capabilities
+4. **Filter**: Notes are filtered by date (today or latest) and quality (3+ selections, Seeking Alpha reference)
+5. **Log**: Structured data is saved to date-stamped `.txt` files with UTF-8 BOM encoding
+
+## Technical Details
+
+-   **Transport**: Uses Streamable HTTP for MCP connections (as per MCP Inspector settings)
+-   **Encoding**: Logs use UTF-8 with BOM (`utf-8-sig`) for universal compatibility
+-   **Quality Scoring**: 0.0-1.0 based on criteria; ≥0.7 + 3+ picks = high quality
+-   **Default Sort**: Always sorts by `time_descending` for most recent results
